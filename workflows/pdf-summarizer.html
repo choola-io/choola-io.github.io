@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Summarize a PDF and email yourself the result · .Choola</title>
+<meta name="description" content="Build a four-node Choola workflow that accepts a PDF upload, extracts its text, summarizes it with Claude, and emails the summary to you via Gmail.">
+<link rel="canonical" href="https://choola.io/workflows/pdf-summarizer.html">
+
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://choola.io/workflows/pdf-summarizer.html">
+<meta property="og:title" content="Summarize a PDF and email yourself the result · .Choola">
+<meta property="og:description" content="Build a four-node Choola workflow that accepts a PDF upload, extracts its text, summarizes it with Claude, and emails the summary to you via Gmail.">
+<meta property="og:image" content="https://choola.io/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="Choola">
+<meta property="article:published_time" content="2026-05-15">
+<meta property="article:author" content="https://github.com/igrosny">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://choola.io/workflows/pdf-summarizer.html">
+<meta name="twitter:title" content="Summarize a PDF and email yourself the result · .Choola">
+<meta name="twitter:description" content="Build a four-node Choola workflow that accepts a PDF upload, extracts its text, summarizes it with Claude, and emails the summary to you via Gmail.">
+<meta name="twitter:image" content="https://choola.io/og.png">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "Summarize a PDF and email yourself the result with Choola",
+  "description": "Build a four-node Choola workflow that accepts a PDF upload, extracts its text, summarizes it with Claude, and emails the summary via Gmail.",
+  "datePublished": "2026-05-15",
+  "author": {
+    "@type": "Person",
+    "name": "igrosny",
+    "url": "https://github.com/igrosny"
+  },
+  "totalTime": "PT15M",
+  "tool": [
+    {"@type": "HowToTool", "name": "Choola"},
+    {"@type": "HowToTool", "name": "Claude Code"},
+    {"@type": "HowToTool", "name": "Anthropic API key"},
+    {"@type": "HowToTool", "name": "Gmail account"}
+  ],
+  "step": [
+    {
+      "@type": "HowToStep",
+      "name": "Initialize the project",
+      "text": "Create a project directory and run choola init, then choola start to launch the visual editor at localhost:5000.",
+      "url": "https://choola.io/workflows/pdf-summarizer.html#initialize"
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Register your credentials",
+      "text": "Use choola credential to register your Anthropic API key and complete the Gmail OAuth2 flow. Credentials are encrypted in choola.db.",
+      "url": "https://choola.io/workflows/pdf-summarizer.html#credentials"
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Scaffold the workflow with Claude Code",
+      "text": "Describe the workflow to Claude Code using the /workflow slash command. Claude scaffolds the folder and writes one node per step.",
+      "url": "https://choola.io/workflows/pdf-summarizer.html#scaffold"
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Write the four nodes",
+      "text": "FormTrigger accepts the upload, ExtractText pulls plain text from the PDF, an LLM node summarizes with Claude, and Gmail sends the result.",
+      "url": "https://choola.io/workflows/pdf-summarizer.html#nodes"
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Run it",
+      "text": "Click Run in the editor or use choola run pdf-summary --payload from the CLI. Watch execution stream node-by-node.",
+      "url": "https://choola.io/workflows/pdf-summarizer.html#run"
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Debug with evaluations and replay",
+      "text": "Every run writes an evaluation JSON. Use /debug to locate the failing node and choola replay to re-execute just that node against its saved input.",
+      "url": "https://choola.io/workflows/pdf-summarizer.html#debug"
+    }
+  ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+</head>
+<body>
+<main>
+
+<header class="page-header">
+  <div class="crumb"><a href="../index.html">.Choola</a> · workflows</div>
+  <h1>Summarize a PDF and email yourself the result</h1>
+  <div class="meta">2026-05-15 · FormTrigger → ExtractText → LLM → Gmail</div>
+</header>
+
+<p>This walkthrough builds a four-node Choola workflow end to end: a form that accepts a PDF upload, a node that pulls plain text out of it, a Claude call that summarizes the text, and a Gmail node that sends the summary to your inbox. By the end you'll have something you can drop a paper into and get a one-paragraph summary back in about ten seconds.</p>
+
+<p>It assumes you've already run <code>pip install choola</code> and have an Anthropic API key and Gmail credential ready to register.</p>
+
+<h2 id="initialize">1. Initialize the project</h2>
+
+<pre><code class="language-bash">mkdir pdf-summary && cd pdf-summary
+choola init
+choola start    # editor opens at http://localhost:5000</code></pre>
+
+<p><code>choola init</code> creates <code>workflows/</code>, <code>choola.db</code>, and a <code>.claude/</code> directory with pre-approved slash commands. Leave the editor running in one terminal; you'll use a second one for the rest of the commands.</p>
+
+<figure>
+  <img src="images/pdf-summarizer-canvas.png" alt="Empty Choola canvas after running choola init" width="1200" height="720" loading="lazy">
+  <figcaption>Fresh canvas after <code>choola start</code> — no workflows yet.</figcaption>
+</figure>
+
+<h2 id="credentials">2. Register your credentials</h2>
+
+<p>From the second terminal:</p>
+
+<pre><code class="language-bash">choola credential anthropic-key     # paste your Anthropic API key
+choola credential gmail              # walks you through the OAuth2 flow</code></pre>
+
+<p>Credentials are stored encrypted in <code>choola.db</code> and accessed inside nodes via <code>await self.get_credential("name")</code> — never as environment variables, never hardcoded.</p>
+
+<h2 id="scaffold">3. Scaffold the workflow with Claude Code</h2>
+
+<p>The fastest path is to describe the workflow to Claude Code (either in the editor's built-in terminal pane or in your own):</p>
+
+<pre><code class="language-bash">/workflow build a workflow called pdf-summary that:
+- starts from a form with a PDF file upload field
+- extracts plain text from the uploaded PDF
+- summarizes the text with Claude in one paragraph
+- emails the summary to me via Gmail</code></pre>
+
+<p>Claude reads the framework rules, scaffolds the folder, and writes one node per step. The result is a directory like:</p>
+
+<pre><code class="language-bash">workflows/pdf-summary/
+├── topology.json
+├── files/
+├── evaluations/
+└── nodes/
+    ├── __init__.py
+    ├── form_trigger.py     # next_nodes=["extract_text"]
+    ├── extract_text.py     # next_nodes=["summarize"]
+    ├── summarize.py        # next_nodes=["send_email"]
+    └── send_email.py       # next_nodes=[]</code></pre>
+
+<p>If you'd rather see the nodes first, the rest of this page walks through them as you'd hand-write them.</p>
+
+<h2 id="nodes">4. The four nodes</h2>
+
+<h3>form_trigger.py</h3>
+
+<p>Choola's <code>FormTrigger</code> base class renders an HTML form and starts the workflow on submit. Each declared field becomes a key in the outgoing payload.</p>
+
+<pre><code class="language-python">from choola.nodes import FormTrigger
+
+
+class PDFForm(FormTrigger):
+    """Accept a PDF upload and kick off the summary workflow.
+
+    @cost: free
+    """
+
+    node_id = "form_trigger"
+    next_nodes = ["extract_text"]
+
+    title = "Summarize a PDF"
+    fields = [
+        {"name": "pdf", "type": "file", "accept": ".pdf", "required": True},
+    ]</code></pre>
+
+<h3>extract_text.py</h3>
+
+<p>Pull the bytes off the upload, run <code>pypdf</code> over them, and pass the text downstream. No LLM call here — it's deterministic and free.</p>
+
+<pre><code class="language-python">from io import BytesIO
+from pypdf import PdfReader
+
+from choola.nodes import BaseNode
+
+
+class ExtractText(BaseNode):
+    """Read the uploaded PDF and emit its plain text.
+
+    @cost: free
+    """
+
+    node_id = "extract_text"
+    next_nodes = ["summarize"]
+
+    async def execute(self, payload, context):
+        pdf_bytes = payload["pdf"]["bytes"]
+        reader = PdfReader(BytesIO(pdf_bytes))
+        text = "\n\n".join(page.extract_text() or "" for page in reader.pages)
+        return {"text": text, "filename": payload["pdf"]["filename"]}</code></pre>
+
+<h3>summarize.py</h3>
+
+<p>The <code>LLM</code> base node handles the Claude/Gemini API call, interpolation, and token reporting for you. You declare the prompt template and the model; the engine takes care of the rest, including feeding token counts to the per-run and per-hour circuit breakers.</p>
+
+<pre><code class="language-python">from choola.nodes import LLM
+
+
+class Summarize(LLM):
+    """One-paragraph summary of the extracted PDF text.
+
+    @cost: paid-one-shot
+    """
+
+    node_id = "summarize"
+    next_nodes = ["send_email"]
+
+    credential = "anthropic-key"
+    model = "claude-haiku-4-5"
+    prompt = """\
+        Summarize the following document in one tight paragraph (≤120 words).
+        Focus on the main claim, the evidence, and the conclusion.
+
+        ---
+        {text}
+        ---
+    """
+
+    async def post_process(self, response, payload, context):
+        return {"summary": response.strip(), "filename": payload["filename"]}</code></pre>
+
+<h3>send_email.py</h3>
+
+<p>The <code>Gmail</code> base node uses the credential you registered earlier. The subject and body use Python's standard <code>str.format</code> on the incoming payload.</p>
+
+<pre><code class="language-python">from choola.nodes import Gmail
+
+
+class SendEmail(Gmail):
+    """Email the summary to the workflow owner.
+
+    @cost: paid-per-call
+    """
+
+    node_id = "send_email"
+    next_nodes = []
+
+    credential = "gmail"
+    to = "me"
+    subject = "Summary: {filename}"
+    body = "{summary}"</code></pre>
+
+<h2 id="run">5. Run it</h2>
+
+<p>From the editor, click <strong>pdf-summary</strong> in the sidebar, then <strong>Run</strong>. The form trigger renders as a page; drop a PDF in and submit. The canvas lights up node-by-node as execution streams.</p>
+
+<figure>
+  <img src="images/pdf-summarizer-run.png" alt="Workflow canvas with all four nodes green after a successful run" width="1200" height="720" loading="lazy">
+  <figcaption>A successful run — each node turns green and shows its duration and token count.</figcaption>
+</figure>
+
+<p>To run from the CLI instead (handy for replay during debugging):</p>
+
+<pre><code class="language-bash">choola run pdf-summary --payload '{"pdf_path": "papers/attention.pdf"}'</code></pre>
+
+<h2 id="debug">6. When it breaks: read the evaluation, replay the broken node</h2>
+
+<p>Every run writes a JSON evaluation to <code>workflows/pdf-summary/evaluations/&lt;run_id&gt;.json</code> with the input, output, status, duration, and token counts for each node. When a node errors, its <code>"status"</code> is <code>"ERROR"</code> and the entry includes the full traceback.</p>
+
+<p>The fix loop is two steps:</p>
+
+<pre><code class="language-bash"># 1. point Claude Code at the failing run
+/debug pdf-summary
+
+# 2. after editing the node, re-run just that node against its saved input
+choola replay pdf-summary &lt;run_id&gt; extract_text</code></pre>
+
+<p>Replay does not re-issue the upstream LLM call — that's the whole point. You iterate on the broken node for free while the rest of the pipeline stays frozen.</p>
+
+<h2 id="next">What to try next</h2>
+
+<ul>
+  <li>Swap <code>LLM</code> for <code>LLML</code> on a classification step (e.g. "is this paper about ML?") and run <code>choola dream</code> after a few invocations to graduate it to a free local XGBoost classifier.</li>
+  <li>Branch after <code>extract_text</code>: one branch summarizes, another extracts the bibliography, and a merge node emails both in a single message.</li>
+  <li>Expose the workflow as an MCP tool. With the editor running, any MCP-aware client can call it at <code>POST http://localhost:5000/mcp</code> — no UI scraping required.</li>
+</ul>
+
+<p><a href="../index.html">← back to .Choola</a></p>
+
+<footer>
+  Early-stage project. APIs may change between versions.
+</footer>
+
+</main>
+</body>
+</html>

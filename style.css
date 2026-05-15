@@ -1,0 +1,193 @@
+/* Choola site — plain, paper-like, serif. */
+
+:root {
+  --bg: #fafaf7;
+  --ink: #1c1c1a;
+  --ink-soft: #555;
+  --rule: #d8d6cf;
+  --link: #1a4d8f;
+  --code-bg: #f3f1ea;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'EB Garamond', Georgia, 'Times New Roman', serif;
+  font-size: 19px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 6rem 1.5rem 6rem;
+}
+
+/* Landing title */
+.title {
+  text-align: center;
+  margin: 4rem 0 2rem;
+}
+.title h1 {
+  font-family: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(5rem, 18vw, 11rem);
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1;
+}
+.title .tagline {
+  color: var(--ink-soft);
+  font-style: italic;
+  font-size: 1.15rem;
+  margin-top: 1rem;
+}
+.title .gh {
+  display: inline-block;
+  margin-top: 1.5rem;
+  font-size: 1rem;
+}
+
+/* Page header for sub-pages */
+.page-header {
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--rule);
+}
+.page-header .crumb {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  margin-bottom: 0.5rem;
+}
+.page-header h1 {
+  font-family: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+  font-weight: 500;
+  font-size: 2.6rem;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.3rem;
+  line-height: 1.15;
+}
+.page-header .meta {
+  color: var(--ink-soft);
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
+h2 {
+  font-family: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+  font-weight: 500;
+  font-size: 1.8rem;
+  letter-spacing: -0.01em;
+  margin: 3rem 0 1rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+h3 {
+  font-family: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+  font-weight: 500;
+  font-size: 1.35rem;
+  margin: 2rem 0 0.6rem;
+}
+
+p { margin: 0.8rem 0; }
+
+a { color: var(--link); text-decoration: underline; text-underline-offset: 2px; }
+a:hover { text-decoration: none; }
+
+ul, ol { padding-left: 1.4rem; }
+li { margin: 0.4rem 0; }
+li > strong { font-weight: 600; }
+
+/* Code */
+code, pre, kbd, samp {
+  font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, 'Courier New', monospace;
+  font-size: 0.86em;
+}
+
+p code, li code, h2 code, h3 code {
+  background: var(--code-bg);
+  padding: 0.08em 0.35em;
+  border-radius: 3px;
+  font-size: 0.82em;
+}
+
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 1rem 1.1rem;
+  overflow-x: auto;
+  line-height: 1.5;
+  margin: 1.2rem 0;
+}
+
+pre code.hljs {
+  background: transparent;
+  padding: 0;
+  font-size: 0.95em;
+}
+
+/* Screenshots */
+figure {
+  margin: 1.8rem 0;
+  text-align: center;
+}
+figure img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+}
+figcaption {
+  font-style: italic;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+/* Workflow index list */
+.workflow-list {
+  list-style: none;
+  padding: 0;
+}
+.workflow-list li {
+  margin: 1rem 0;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--rule);
+}
+.workflow-list li:last-child { border-bottom: none; }
+.workflow-list .wf-date {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  font-style: italic;
+  margin-top: 0.15rem;
+}
+.workflow-list .wf-desc {
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  margin-top: 0.2rem;
+}
+
+footer {
+  margin-top: 5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--rule);
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  font-style: italic;
+  text-align: center;
+}
+
+@media (max-width: 540px) {
+  html, body { font-size: 17px; }
+  main { padding: 3rem 1.2rem 4rem; }
+  .title h1 { font-size: 22vw; }
+}
